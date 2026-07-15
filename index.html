@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Support Region QR</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 30px;
+      font-family: Arial, sans-serif;
+      background: #f5f6f8;
+    }
+
+    .region {
+      margin-bottom: 28px;
+    }
+
+    .region-title {
+      background: #e60000;
+      color: #fff;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      padding: 6px;
+      border-radius: 3px;
+      letter-spacing: 1px;
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .card {
+      width: 145px;
+      min-height: 85px;
+      background: #e1e4e6;
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+      transition: 0.25s;
+      color: #e60000;
+      font-size: 13px;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    }
+
+    .city {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .person {
+      font-size: 12px;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modal-box {
+      width: 360px;
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      border: none;
+      background: none;
+      font-size: 26px;
+      cursor: pointer;
+    }
+
+    .modal-city {
+      color: #e60000;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .modal-person {
+      font-size: 16px;
+      margin-bottom: 18px;
+      font-weight: 600;
+    }
+
+    .qr-img {
+      width: 230px;
+      height: 230px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      padding: 8px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="container"></div>
+
+<div class="modal-overlay" id="qrModal">
+  <div class="modal-box">
+    <button class="close-btn" onclick="closeModal()">×</button>
+    <div class="modal-city" id="modalCity"></div>
+    <div class="modal-person" id="modalPerson"></div>
+    <img id="modalQR" class="qr-img" src="" alt="QR Code">
+  </div>
+</div>
+
+<script>
+  const regions = {
+    WEST: [
+      ["Mumbai", "Mr.Vikram Khatarkar", "qr/mumbai.png"],
+      ["Navi Mumbai", "Mr.Piyush Panchal", "qr/navi-mumbai.png"],
+      ["Pune (Chakan DTC)", "Mr.Gajanan Kurhe", "qr/pune-chakan.png"],
+      ["Pune (City)", "Thote Rajesh Sheshraoji", "qr/pune-city.png"],
+      ["Vadodara (POR DTC)", "Mr.Subodh Ladwa", "qr/vadodara-por.png"],
+      ["Vadodara (City)", "Mr.Sayan Mukherjee", "qr/vadodara-city.png"],
+      ["Ahmedabad", "Mr.Viral Patel", "qr/ahmedabad.png"],
+      ["Gandhinagar", "Mr.Tejinder Singh", "qr/gandhinagar.png"]
+    ],
+    NORTH: [
+      ["Delhi", "Mr.Brijmohan Bhandari", "qr/delhi.png"],
+      ["Tapukara (DTC)", "Mr.Vipul Sharma", "qr/tapukara.png"],
+      ["Gurugram", "Mr.Vinod Kumar Meena", "qr/gurugram.png"]
+    ],
+    SOUTH: [
+      ["Chennai", "Jameesha Anshad", "qr/chennai.png"],
+      ["Sriperumbudur", "Mr.Karthik Ganesh", "qr/sriperumbudur.png"],
+      ["Coimbatore", "Mr.R Shanmugha Prabhu", "qr/coimbatore.png"],
+      ["Bengaluru (Peenya)", "Mr.Prasad Gowda", "qr/bengaluru-peenya.png"],
+      ["Bengaluru (Electronic City)", "Mr.Sandeep Kumar", "qr/bengaluru-electronic.png"],
+      ["Hyderabad", "Mr.Ajay Atluri", "qr/hyderabad.png"],
+      ["Secunderabad", "Mr.A Vijay Anand", "qr/secunderabad.png"]
+    ],
+    EAST: [
+      ["Raipur", "Mr.Sutanu Sarkar", "qr/raipur.png"],
+      ["Kolkata", "Mr.Sugata Nandi", "qr/kolkata.png"]
+    ]
+  };
+
+  const container = document.getElementById("container");
+
+  Object.entries(regions).forEach(([region, items]) => {
+    const section = document.createElement("div");
+    section.className = "region";
+
+    section.innerHTML = `
+      <div class="region-title">${region}</div>
+      <div class="cards">
+        ${items.map(item => `
+          <div class="card" onclick="openModal('${item[0]}','${item[1]}','${item[2]}')">
+            <div class="city">${item[0]}</div>
+            <div class="person">${item[1]}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    container.appendChild(section);
+  });
+
+  function openModal(city, person, qr) {
+    document.getElementById("modalCity").innerText = city;
+    document.getElementById("modalPerson").innerText = person;
+    document.getElementById("modalQR").src = qr;
+    document.getElementById("qrModal").style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("qrModal").style.display = "none";
+  }
+</script>
+
+</body>
+</html>
